@@ -4,6 +4,8 @@ import time
 import argparse
 import torch
 import torch.nn as nn
+from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader, random_split
 
 # Import custom modules

@@ -1,0 +1,44 @@
+name: Auto‑PR on CI success
+
+on:
+  push:
+    paths:
+      - 'bot.py'
+      - 'train_fsd.py'
+      - 'inference_fsd.py'
+      - 'README.md'
+      - 'controller/**'
+      - 'models/**'
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed for PR creation
+
+      - name: Set up Python (optional – only if you need to run scripts)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run CI (reuse existing ci.yml)
+        run: |
+          echo "Running CI..."
+          # You can call your existing CI script here, e.g.:
+          # ./ci.sh
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Automated PR from ${{ github.ref_name }}"
+          title: "Automated PR: ${{ github.ref_name }} → main"
+          body: |
+            This pull request was automatically created after a successful CI run on the `${{ github.ref_name }}` branch.
+            Please review the changes before merging.
+          base: main
+          branch: ${{ github.ref_name }}
