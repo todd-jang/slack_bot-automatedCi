@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create virtual environment
+        run: python -m venv venv
+
+      - name: Install dependencies
+        run: |
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run quick training sanity check
+        run: |
+          source venv/bin/activate
+          python train_fsd.py --epochs 1 --batch-size 2 --num-samples 20
+
+      - name: Run inference benchmark
+        run: |
+          source venv/bin/activate
+          python inference_fsd.py
+
+      - name: Verify checkpoint exists
+        run: |
+          if [ ! -f models/fsd_v1.pth ]; then
+            echo "Checkpoint not found!"
+            exit 1
+          fi
+
+      - name: Run controller demo
+        run: |
+          source venv/bin/activate
+          python run_controller.py
